@@ -1,13 +1,15 @@
-In a programming language of your choice among {C, Java, Python, C++} [note, you will be submitting a makefile, and it must ensure that the correct version of python is invoked i.e. be 
-explicit in whether to invoke the python3 or python2.7 interpreter], implementa program with the following specification that schedules a restricted set of simplified instructions on 
-an FDEMW 5 stage scalar (1-wide) pipeline with all potential forwarding paths:
+In a programming language of your choice among {C, Java, Python, C++} [note, you will be submitting a makefile, and it must ensure that the
+correct version of python is invoked i.e. be explicit in whether to invoke the python3 or python2.7 interpreter], implement a program with
+the following specification that schedules a restricted set of simplified instructions on an FDEMW 5 stage scalar (1-wide) pipeline with all
+potential forwarding paths:
 
 a) Invocation:
 
-Your program will be built (if necessary) and invoked via the Make utility. We will run "make test" i.e. asking the make program to follow the "test" rule.
-The test rule will have your program consume an input file named test.in and produce its output in a file named out.txt
+Your program will be built (if necessary) and invoked via the Make utility. We will run "make test" i.e. asking the make program to follow
+the "test" rule. The test rule will have your program consume an input file named test.in and produce its output in a file named out.txt
 
-If you are unfamiliar with the make utility and makefiles in general, please feel free to collaborate with other students - this is not an AI violation; you may freely share your makefiles, but not your solution code itself.
+If you are unfamiliar with the make utility and makefiles in general, please feel free to collaborate with other students - this is not
+an AI violation; you may freely share your makefiles, but not your solution code itself.
 
 b) Format of input file:
 
@@ -18,7 +20,9 @@ I,<REG>,<REG>,<IMM>
 L,<REG>,<IMM>,<REG>
 S,<REG>,<IMM>,<REG>
 
-where {R,I,L,S} are the capital letters R, I, L, and S, {,} is comma, <REG> is a positive integer value between 0 and 31, inclusive, and <IMM> is a NON-NEGATIVE integer value between 0 and 65535, with both <REG> and <IMM> encoded as decimals. The first <REG> is the destination for R, I, and L. Memory (not modeled) is the destination for S.
+where {R,I,L,S} are the capital letters R, I, L, and S, {,} is comma, <REG> is a positive integer value between 0 and 31, inclusive, and
+<IMM> is a NON-NEGATIVE integer value between 0 and 65535, with both <REG> and <IMM> encoded as decimals. The first <REG> is the destination
+for R, I, and L. Memory (not modeled) is the destination for S.
 
 e.g. a valid input file may look like:
 
@@ -52,7 +56,8 @@ For each instruction in the input file, produce a corresponding line in out.txt 
 
 <F-cycle>,<D-cycle>,<E-cycle>,<M-cycle>,<W-cycle>
 
-where all comma-separated fields are non-negative integers encoded as two-digit decimals and represent the cycle in which the associated instruction completes the specified stage.
+where all comma-separated fields are non-negative integers encoded as two-digit decimals and represent the cycle in which the
+associated instruction completes the specified stage.
 
 e.g. for the example input above in b), the expected output is:
 
@@ -66,4 +71,5 @@ e.g. for the example input above in b), the expected output is:
 10,11,12,13,14
 11,12,13,14,15
 
-Example input-output pairs will be provided in the modules directory for your testing benefit, and an autograder will be made available for testing via Gradescope.
+Example input-output pairs will be provided in the modules directory for your testing benefit, and an autograder will be made
+available for testing via Gradescope.

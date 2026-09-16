@@ -73,3 +73,39 @@ e.g. for the example input above in b), the expected output is:
 
 Example input-output pairs will be provided in the modules directory for your testing benefit, and an autograder will be made
 available for testing via Gradescope.
+
+
+int main(int argc, char** argv){
+  initStructuresAndCounts(argc,argv); 
+  ... 
+  while(completedInsts<icount){
+    WB(...);
+    Mem(...);
+    Execute(...);
+    Decode(...); 
+    Fetch(...);
+    cyclecount++; 
+  }
+  emitOutput(); 
+  return 0;
+}
+
+old bad stuff:
+def parse_instruction(instruction: str) -> None:
+    """
+    Takes in whole instruction
+    Returns components
+    """
+    #use read inputs
+    #R,<REG>,<REG>,<REG>
+    #I,<REG>,<REG>,<IMM>
+    #L,<REG>,<IMM>,<REG>
+    #S,<REG>,<IMM>,<REG>
+    pass
+
+def load_hazard() -> None:
+    """
+    register-carried load-use dependencies
+    For each instruction in the input file, produce a corresponding line in out.txt of the form
+    """
+    pass

@@ -88,3 +88,10 @@ def main(argc : int, argv : char) -> int: # how does char** translate to python?
   
     emit_output()
     return 0
+
+
+# The TA explained that the decode function needs to know the previous two instructions in order to decide
+#if a stall will be present, how should I store that information to be accessed later? Am I reading the text file into an array?
+#That idea doesn't seem to line up with the fact that my parameters should take in one instruction at a time (along with stage and cycle).
+#- Is the process for taking in and reading a text file different because we are using a makefile? How does the makefile know which
+#function in the Sched file to send the text file to?

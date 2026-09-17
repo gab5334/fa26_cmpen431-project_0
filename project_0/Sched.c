@@ -162,7 +162,8 @@ int Decode(Latch *FD_in, Latch *DE_out){  // Checks for hazards. If there are no
   }
 
   if (stall){
-    return 1; //doesn't mark DE_out invalid, essentially inserting a bubble
+    return 1;
+    DE_out->valid = 0; // inserting a bubble
   } else {//no stall
     curr->decodeComplete = cycleCount;
     DE_out->instr = curr;
@@ -201,7 +202,7 @@ void emitOutput(){ // Writes which cycle each instr finished each stage to outpu
     int ex = program[i].executeComplete;
     int mem = program[i].memComplete;
     int wb = program[i].wbComplete;
-    fprintf(fileout,"%d,%d,%d,%d,%d\n", fe, de, ex, mem, wb);
+    fprintf(fileout,"%02d,%02d,%02d,%02d,%02d\n", fe, de, ex, mem, wb);
   }
   
   fclose(fileout);

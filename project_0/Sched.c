@@ -107,6 +107,7 @@ void initStructuresAndCounts(int argc, char **argv){
   fclose(file);
 
   FD.valid = DE.valid = EM.valid = MW.valid = 0; //latches empty at start
+  FD.instr = DE.instr = EM.instr = MW.instr = NULL;
 
   nextFetch = 0;
   cycleCount = 0;
@@ -124,8 +125,8 @@ void WB(Latch *MW_in){ // Would update register contents, but we are not emulati
 }
 
 void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but we are not emulating instruction execution, just scheduling.
-    //printf("Hitting mem on ================= %d\n", cycleCount);
-    if (EM_in->valid){
+  //printf("Hitting mem on ================= %d\n", cycleCount);
+  if (EM_in->valid){
   //Results from R and I types would be available here for forwarding
     EM_in->instr->memComplete = cycleCount;
     MW_out->valid = 1;
@@ -136,7 +137,7 @@ void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but w
 }
 
 void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but we are not emulating instruction execution, just scheduling
-    //printf("Hitting exe on ================= %d\n", cycleCount);
+  //printf("Hitting exe on ================= %d\n", cycleCount);
   if (DE_in->valid){
     DE_in->instr->executeComplete = cycleCount;
     EM_out->valid = 1;
@@ -165,7 +166,8 @@ int Decode(Latch *FD_in, Latch *DE_out, Latch *oldDE){  // Checks for hazards. I
 
     int targetReg = oldDE->instr->destReg;
 
-    if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||(curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
+    if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||
+        (curr->type = TYPE_S && curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
       stall = 1; //stall required
     }
   }

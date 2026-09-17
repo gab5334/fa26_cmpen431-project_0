@@ -21,7 +21,7 @@ typedef struct {
 
 typedef struct {
   int valid;
-  Instruction *instr;;
+  Instruction *instr;
 } Latch;
 
 Instruction *program = NULL; // Global array containing each instruction
@@ -122,7 +122,8 @@ void WB(Latch *MW_in){ // Would update register contents, but we are not emulati
 }
 
 void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but we are not emulating instruction execution, just scheduling.
-  if (EM_in->valid){
+    //printf("Hitting mem on ================= %d\n", cycleCount);
+    if (EM_in->valid){
   //Results from R and I types would be available here for forwarding
     EM_in->instr->memComplete = cycleCount;
     MW_out->valid = 1;
@@ -133,7 +134,8 @@ void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but w
 }
 
 void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but we are not emulating instruction execution, just scheduling
-  if (DE_in->valid){
+    //printf("Hitting exe on ================= %d\n", cycleCount);
+    if (DE_in->valid){
     DE_in->instr->executeComplete = cycleCount;
     EM_out->valid = 1;
     EM_out->instr = DE_in->instr;
@@ -212,8 +214,8 @@ int main(int argc, char** argv){
   while(completedInsts<icount){
     WB(&MW);
     Mem(&EM, &MW);
-    int stall = Decode(&FD, &MW);
     Execute(&DE, &EM);
+    int stall = Decode(&FD, &DE);
     Fetch(&FD, stall);
     cycleCount++;
   }

@@ -118,6 +118,8 @@ void WB(Latch *MW_in){ // Would update register contents, but we are not emulati
   if (MW_in->valid){
     MW_in->instr->wbComplete = cycleCount;
     completedInsts++;
+    MW.valid = 0;
+    MW.instr = NULL;
   }
 }
 
@@ -135,10 +137,11 @@ void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but w
 
 void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but we are not emulating instruction execution, just scheduling
     //printf("Hitting exe on ================= %d\n", cycleCount);
-    if (DE_in->valid){
+  if (DE_in->valid){
     DE_in->instr->executeComplete = cycleCount;
     EM_out->valid = 1;
     EM_out->instr = DE_in->instr;
+    DE_in->valid = 0;
   } else {
     EM_out->valid = 0;
     EM_out->instr = NULL;
@@ -154,23 +157,43 @@ int Decode(Latch *FD_in, Latch *DE_out){  // Checks for hazards. If there are no
   //load use hazard? check against instruct currently in execute aka DE latch
   Instruction *curr = FD_in->instr;
   int stall = 0;
-  if (DE.valid && DE.instr->type == TYPE_L && DE.instr->destReg != -1){
+  if (DE.valid &&
+      DE.instr->type == TYPE_L &&
+      DE.instr->destReg != -1 &&
+      DE.instr->destReg != 0
+    ){
+
     int targetReg = DE.instr->destReg;
+
     if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||(curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
       stall = 1; //stall required
     }
   }
 
+  printf("cycle=%d DE=%c dest=%d FD=%c src1=%d src2=%d stall=%d\n",
+         cycleCount,
+         (DE.valid && DE.instr) ? DE.instr->op : '-',
+         (DE.valid && DE.instr) ? DE.instr->destReg : -1,
+         curr->op,
+         curr->srcReg1,
+         curr->srcReg2,
+         stall);
+
   if (stall){
-    return 1;
     DE_out->valid = 0; // inserting a bubble
-  } else {//no stall
-    curr->decodeComplete = cycleCount;
-    DE_out->instr = curr;
-    DE_out->valid = 1;
-    FD_in->valid = 0;
-    return 0;
+    DE_out->instr = NULL;
+    return 1;
+
   }
+
+  curr->decodeComplete = cycleCount;
+
+  DE_out->instr = curr;
+  DE_out->valid = 1;
+
+  FD_in->valid = 0;
+
+  return 0;
 }
 
 void Fetch(Latch *FD_out, int stall){  // Moves the fetched instruction to decode if decode is not stalled
@@ -180,8 +203,8 @@ void Fetch(Latch *FD_out, int stall){  // Moves the fetched instruction to decod
 
   if (nextFetch < icount){ //incoming instruction comes from next unfetched location
     FD_out->instr = &program[nextFetch];
-    FD_out->valid = 1;
     FD_out->instr->fetchComplete = cycleCount;
+    FD_out->valid = 1;
     nextFetch ++;
   } else {
     FD_out->valid = 0; // No more instructions left to enter the pipeline

@@ -148,7 +148,7 @@ void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but w
   }
 }
 
-int Decode(Latch *FD_in, Latch *DE_out){  // Checks for hazards. If there are no hazards, then the instruction can advance
+int Decode(Latch *FD_in, Latch *DE_out, Latch *oldDE){  // Checks for hazards. If there are no hazards, then the instruction can advance
   if (!FD_in->valid){
     DE_out->valid = 0;
     return 0; //no stall
@@ -157,27 +157,19 @@ int Decode(Latch *FD_in, Latch *DE_out){  // Checks for hazards. If there are no
   //load use hazard? check against instruct currently in execute aka DE latch
   Instruction *curr = FD_in->instr;
   int stall = 0;
-  if (DE.valid &&
-      DE.instr->type == TYPE_L &&
-      DE.instr->destReg != -1 &&
-      DE.instr->destReg != 0
+  if (oldDE->valid &&
+      oldDE->instr->type == TYPE_L &&
+      oldDE->instr->destReg != -1 &&
+      oldDE->instr->destReg != 0
     ){
 
-    int targetReg = DE.instr->destReg;
+    int targetReg = oldDE->instr->destReg;
 
     if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||(curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
       stall = 1; //stall required
     }
   }
 
-  printf("cycle=%d DE=%c dest=%d FD=%c src1=%d src2=%d stall=%d\n",
-         cycleCount,
-         (DE.valid && DE.instr) ? DE.instr->op : '-',
-         (DE.valid && DE.instr) ? DE.instr->destReg : -1,
-         curr->op,
-         curr->srcReg1,
-         curr->srcReg2,
-         stall);
 
   if (stall){
     DE_out->valid = 0; // inserting a bubble
@@ -236,10 +228,11 @@ int main(int argc, char** argv){
   initStructuresAndCounts(argc,argv);
 
   while(completedInsts<icount){
+    Latch oldDE = DE;
     WB(&MW);
     Mem(&EM, &MW);
     Execute(&DE, &EM);
-    int stall = Decode(&FD, &DE);
+    int stall = Decode(&FD, &DE, &oldDE);
     Fetch(&FD, stall);
     cycleCount++;
   }

@@ -167,7 +167,7 @@ int Decode(Latch *FD_in, Latch *DE_out, Latch *oldDE){  // Checks for hazards. I
     int targetReg = oldDE->instr->destReg;
 
     if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||
-        (curr->type = TYPE_S && curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
+        (curr->type != TYPE_S && curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
       stall = 1; //stall required
     }
   }

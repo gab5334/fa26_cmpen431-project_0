@@ -33,8 +33,8 @@ int completedInsts;
 Latch FD, DE, EM, MW; //latches able to be referenced globally
 
 void initStructuresAndCounts(int argc, char **argv){
-
-  FILE *file = fopen(argv[1], 'r'); //argv[1] = input filename
+    //argv[1] = input filename
+  FILE *file = stdin;
   if (!file){ //error
     printf("Couldn't open file");
     exit(1);
@@ -67,7 +67,7 @@ void initStructuresAndCounts(int argc, char **argv){
     int regA, regB, regC;
 
     // Go through comma separated lines
-    if (sscanf(line, '%c,%d,%d,%d', &type_char, &regA, &regB, &regC) == 4){
+    if (sscanf(line, "%c,%d,%d,%d", &type_char, &regA, &regB, &regC) == 4){
       program[i].op = type_char;
 
       if (type_char == 'R'){        //R,<REG>,<REG>,<REG>
@@ -133,12 +133,13 @@ void Mem(Latch *EM_in, Latch *MW_out){ // Would perform any memory lookup, but w
 }
 
 void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but we are not emulating instruction execution, just scheduling
-  if (!DE_in->valid){
+  if (DE_in->valid){
     DE_in->instr->executeComplete = cycleCount;
     EM_out->valid = 1;
     EM_out->instr = DE_in->instr;
   } else {
     EM_out->valid = 0;
+    EM_out->instr = NULL;
   }
 }
 
@@ -186,15 +187,13 @@ void Fetch(Latch *FD_out, int stall){  // Moves the fetched instruction to decod
 }
 
 void emitOutput(){ // Writes which cycle each instr finished each stage to output.txt
-  FILE *fileout fopen("output.txt","w");
+  FILE *fileout = fopen("out.txt","w");
   if(!fileout){
     printf("Output file could not open");
     return;
   }
 
-
-  int i = 0;
-  while (i < icount){
+  for (int i=0; i < icount; i++){
     int fe = program[i].fetchComplete;
     int de = program[i].decodeComplete;
     int ex = program[i].executeComplete;

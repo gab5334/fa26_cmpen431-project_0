@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum { TYPE_R, TYPE_I, TYPE_L, TYPE_S } InstType;
 
@@ -30,7 +31,6 @@ int cycleCount;       // Current cycle occuring
 int completedInsts;
 
 Latch FD, DE, EM, MW; //latches able to be referenced globally
-Latch nextFD, nextDE, nextEM, nextMW;
 
 void initStructuresAndCounts(int argc, char **argv){
 
@@ -142,57 +142,56 @@ void Execute(Latch *DE_in, Latch *EM_out){ // Would perform the operation, but w
   }
 }
 
-int Decode(Latch *FD_in, Latch *DE_current, Latch *EM_current, Latch *DE_out){  // Checks for hazards. If there are no hazards, then the instruction can advance
+int Decode(Latch *FD_in, Latch *DE_out){  // Checks for hazards. If there are no hazards, then the instruction can advance
   if (!FD_in->valid){
     DE_out->valid = 0;
     return 0; //no stall
   }
-  /*To do hazard detection, we look at the
-resources in use by older instructions in the later pipeline (E,M,W)
-stages, and check whether or not an operand for the instruction in D is
-defined by a still-in-process instruction.
 
-One logical way to organize this then, as in the HW design, is to have
-state associated with each pipeline stage that is analogous to the pipeline
-latch that holds the information about an in-process instruction in HW.
-This would include the instruction type (so that when an output is
-available is known, since L types produce in a different stage and S types
-don't write registers) and the destination register, if any. This state
-would then propagate down the pipeline stages each cycle
-Depending on your design choices, you could be moving your entire
-instruction record along, or a pointer or index value allowing access to a
-per-instruction data type, or actually decode signals into their own
-pipeline latch specific structure of decoded subfields to emulate HW
-you need
-to, in Decode, check whether a register you are reading is/isn't going to
-be ready in the cycle you need to use it and wait and try again next cycle
-if the answer is no (introducing a no-op into E instead of the instruction
-in D)*/
-  //is the current instruction type L
-    //must check that current destination reg
-    //look at the resources in use by older instructions in the later pipeline (E,M,W) stages, and check whether or not
-    //an operand for the instruction in D is defined by a still-in-process instruction
-  //else
-    //proceed as normal
+  //load use hazard? check against instruct currently in execute aka DE latch
+  Instruction *curr = FD_in->instr;
+  int stall = 0;
+  if (DE.valid && DE.instr->type == TYPE_L && DE.instr->destReg != -1){
+    int targetReg = DE.instr->destReg;
+    if ((curr->srcReg1 != -1 && curr->srcReg1 == targetReg)||(curr->srcReg2 != -1 && curr->srcReg2 == targetReg)){
+      stall = 1; //stall required
+    }
+  }
+
+  if (stall){
+    return 1; //doesn't mark DE_out invalid, essentially inserting a bubble
+  } else {//no stall
+    curr->decodeComplete = cycleCount;
+    DE_out->instr = curr;
+    DE_out->valid = 1;
+    FD_in->valid = 0;
+    return 0;
+  }
 }
 
-int Fetch(Latch *FD_out, int stall){  // Moves the fetched instruction to decode if decode is not stalled
+void Fetch(Latch *FD_out, int stall){  // Moves the fetched instruction to decode if decode is not stalled
   if (stall){
-    return 0; // If there is a stall, fetch does not proceed this cycle
+    return; // If there is a stall, fetch does not proceed this cycle
   }
 
   if (nextFetch < icount){ //incoming instruction comes from next unfetched location
-    FD_out->instr = program[nextFetch];
+    FD_out->instr = &program[nextFetch];
     FD_out->valid = 1;
-    FD_out->cycle_entered = cycleCount; //tracks timing for emitOutput
+    FD_out->instr->fetchComplete = cycleCount;
+    nextFetch ++;
   } else {
     FD_out->valid = 0; // No more instructions left to enter the pipeline
   }
   
 }
 
-emitOutput(){ // Writes which cycle each instr finished each stage to output.txt
-  FILE *fileout fopen('output.txt','w');
+void emitOutput(){ // Writes which cycle each instr finished each stage to output.txt
+  FILE *fileout fopen("output.txt","w");
+  if(!fileout){
+    printf("Output file could not open");
+    return;
+  }
+
 
   int i = 0;
   while (i < icount){
@@ -201,7 +200,7 @@ emitOutput(){ // Writes which cycle each instr finished each stage to output.txt
     int ex = program[i].executeComplete;
     int mem = program[i].memComplete;
     int wb = program[i].wbComplete;
-    fprintf(fileout,'%d,%d,%d,%d,%d\n', fe, de, ex, mem, wb);
+    fprintf(fileout,"%d,%d,%d,%d,%d\n", fe, de, ex, mem, wb);
   }
   
   fclose(fileout);
@@ -209,18 +208,17 @@ emitOutput(){ // Writes which cycle each instr finished each stage to output.txt
 }
 
 int main(int argc, char** argv){
-  initStructuresAndCounts(argc,argv); 
-
-  ...
+  initStructuresAndCounts(argc,argv);
 
   while(completedInsts<icount){
     WB(&MW);
     Mem(&EM, &MW);
+    int stall = Decode(&FD, &MW);
     Execute(&DE, &EM);
-    int stall = Decode(&FD, &DE, &EM, &MW); 
     Fetch(&FD, stall);
-    cyclecount++; 
+    cycleCount++;
   }
+  
   emitOutput(); 
   return 0;
 }

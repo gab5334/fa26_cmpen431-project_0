@@ -4,10 +4,8 @@ NUM_STAGES = 5       # This is a five stage pipeline
 
 def parse_instructions(filename: str) -> None:
     """
-    Takes in whole instruction text file
-    Updates global array with components
+    Takes in text file and fills global array with instructions as dictionaries
     """
-    #use read inputs??
     global icount
 
     with open(filename, 'r') as infile:
@@ -33,8 +31,7 @@ def parse_instructions(filename: str) -> None:
 
 def load_hazard(curr_instr : dict, index : int) -> int:
     """
-    Checks for register-carried load-use dependencies
-    Increments current_cycle if curr_instr depends on a value still being loaded by the preceding instruction
+    Checks for register-carried load-use dependencies and returns 1 if there should be a stall
     """
     if index == 0:  # Need at least 2 instructions before there can be a load use hazard
         return 0
@@ -58,6 +55,7 @@ def main():
     parse_instructions("test.in")
 
     with open("out.txt",'w') as outfile:
+        
         prev_de_cycle = None
 
         for i in range(icount):
@@ -75,6 +73,7 @@ def main():
             outfile.write("\n")
 
             prev_de_cycle = de_cycle
+
 
 if __name__ == "__main__":
     main()

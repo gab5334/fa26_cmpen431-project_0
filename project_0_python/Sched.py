@@ -11,7 +11,6 @@ def parse_instructions(filename: str) -> None:
     #use read inputs??
     global icount
 
-    infile = open(filename, 'r')
     with open(filename, 'r') as infile:
         for line in infile:
             line = line.strip()

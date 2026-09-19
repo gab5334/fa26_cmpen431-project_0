@@ -15,10 +15,10 @@ b) Format of input file:
 
 The input file will consist of 1-32 lines, with each line being in one of the 4 formats below: 
 
-R,<REG>,<REG>,<REG>
-I,<REG>,<REG>,<IMM>
-L,<REG>,<IMM>,<REG>
-S,<REG>,<IMM>,<REG>
+R,<destREG>,<srcREG1>,<srcREG2>
+I,<destREG>,<srcREG1>,<IMM>
+L,<destREG>,<IMM>,<srcREG1>
+S,<srcREG2>,<IMM>,<srcREG1>
 
 where {R,I,L,S} are the capital letters R, I, L, and S, {,} is comma, <REG> is a positive integer value between 0 and 31, inclusive, and
 <IMM> is a NON-NEGATIVE integer value between 0 and 65535, with both <REG> and <IMM> encoded as decimals. The first <REG> is the destination
@@ -90,26 +90,6 @@ int main(int argc, char** argv){
   return 0;
 }
 
-old bad stuff:
-def parse_instruction(instruction: str) -> None:
-    """
-    Takes in whole instruction
-    Returns components
-    """
-    #use read inputs
-    #R,<REG>,<REG>,<REG>
-    #I,<REG>,<REG>,<IMM>
-    #L,<REG>,<IMM>,<REG>
-    #S,<REG>,<IMM>,<REG>
-    pass
-
-def load_hazard() -> None:
-    """
-    register-carried load-use dependencies
-    For each instruction in the input file, produce a corresponding line in out.txt of the form
-    """
-    pass
-
 
 
 
@@ -137,3 +117,17 @@ clean:
 
 
 
+# def write_back():
+#     pass
+
+# def memory():
+#     pass
+
+# def execute():
+#     pass
+
+# def decode():
+#     stall = load_hazard()
+
+# def fetch():
+#     pass
